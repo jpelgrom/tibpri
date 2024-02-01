@@ -1,0 +1,26 @@
+query EnergyPriceInfo {
+    viewer {
+        homes {
+            currentSubscription {
+                priceInfo {
+                    today {
+                        total
+                        energy
+                        tax
+                        startsAt
+                        level
+                        currency
+                    }
+                    tomorrow {
+                        total
+                        energy
+                        tax
+                        startsAt
+                        level
+                        currency
+                    }
+                }
+            }
+        }
+    }
+}
