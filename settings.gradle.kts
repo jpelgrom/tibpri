@@ -13,6 +13,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Tibpri"
+rootProject.name = "tibpri"
 include(":app")
  

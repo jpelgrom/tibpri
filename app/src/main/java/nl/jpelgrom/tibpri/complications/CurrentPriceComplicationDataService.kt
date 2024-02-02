@@ -1,14 +1,21 @@
 package nl.jpelgrom.tibpri.complications
 
+import android.content.ComponentName
+import android.content.Context
 import android.graphics.drawable.Icon
 import androidx.wear.watchface.complications.data.ComplicationData
 import androidx.wear.watchface.complications.data.ComplicationType
 import androidx.wear.watchface.complications.data.MonochromaticImage
 import androidx.wear.watchface.complications.data.PlainComplicationText
 import androidx.wear.watchface.complications.data.RangedValueComplicationData
-import androidx.wear.watchface.complications.data.TimeRange
+import androidx.wear.watchface.complications.datasource.ComplicationDataSourceUpdateRequester
 import androidx.wear.watchface.complications.datasource.ComplicationRequest
 import androidx.wear.watchface.complications.datasource.SuspendingComplicationDataSourceService
+import androidx.work.CoroutineWorker
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.WorkerParameters
 import nl.jpelgrom.tibpri.EnergyPriceInfoQuery
 import nl.jpelgrom.tibpri.R
 import nl.jpelgrom.tibpri.data.apolloClient
@@ -16,6 +23,7 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
+import java.util.concurrent.TimeUnit
 
 class CurrentPriceComplicationDataService : SuspendingComplicationDataSourceService() {
 
@@ -44,24 +52,21 @@ class CurrentPriceComplicationDataService : SuspendingComplicationDataSourceServ
             .build()
 
     override suspend fun onComplicationRequest(request: ComplicationRequest): ComplicationData {
+        scheduleComplicationUpdate()
+
         val data = apolloClient.query(EnergyPriceInfoQuery()).execute().data
         val priceInfo = data?.viewer?.homes?.get(0)?.currentSubscription?.priceInfo
 
         val minToday = priceInfo?.today?.filter { it?.total != null }?.minBy { it!!.total!! }?.total
         val maxToday = priceInfo?.today?.filter { it?.total != null }?.maxBy { it!!.total!! }?.total
-        val currentPrice = priceInfo?.today?.get(LocalTime.now().hour)?.total
+        val currentPrice =
+            priceInfo?.today?.get(LocalTime.now().hour)?.total // Note: assumes price changes on every hour (:00) only
 
         val image =
             MonochromaticImage.Builder(Icon.createWithResource(this, R.drawable.ic_rounded_bolt))
                 .build()
 
         return if (minToday != null && maxToday != null && currentPrice != null) {
-            val nextHourStarts = LocalDateTime.now()
-                .plusHours(1)
-                .truncatedTo(ChronoUnit.HOURS)
-                .atZone(ZoneId.systemDefault())
-                .toInstant()
-
             RangedValueComplicationData.Builder(
                 value = currentPrice.toFloat(),
                 min = minToday.toFloat(),
@@ -73,7 +78,6 @@ class CurrentPriceComplicationDataService : SuspendingComplicationDataSourceServ
                 .setText(
                     PlainComplicationText.Builder(String.format("%.1f", currentPrice * 100)).build()
                 )
-                .setValidTimeRange(TimeRange.before(nextHourStarts))
                 .setMonochromaticImage(image)
                 .build()
         } else { // Issue getting price data
@@ -89,4 +93,43 @@ class CurrentPriceComplicationDataService : SuspendingComplicationDataSourceServ
                 .build()
         }
     }
+
+    private fun scheduleComplicationUpdate() {
+        // Schedule a worker to push a complication update to ensure it shows the new price on time
+        // Note: assumes price changes on every hour (:00) only
+        val nextHourStarts = LocalDateTime.now().plusHours(1).truncatedTo(ChronoUnit.HOURS)
+            .atZone(ZoneId.systemDefault()).toInstant()
+        val workRequest = OneTimeWorkRequestBuilder<CurrentPriceComplicationWorker>()
+            .setInitialDelay(
+                nextHourStarts.toEpochMilli() - System.currentTimeMillis(),
+                TimeUnit.MILLISECONDS
+            )
+            .build()
+        WorkManager.getInstance(this)
+            .enqueueUniqueWork(
+                CurrentPriceComplicationWorker.TAG,
+                ExistingWorkPolicy.KEEP,
+                workRequest
+            )
+    }
+}
+
+class CurrentPriceComplicationWorker(context: Context, params: WorkerParameters) :
+    CoroutineWorker(context, params) {
+
+    companion object {
+        const val TAG = "CurrentPriceComplicationWorker"
+    }
+
+    override suspend fun doWork(): Result {
+        applicationContext.let {
+            ComplicationDataSourceUpdateRequester.create(
+                it,
+                ComponentName(it, CurrentPriceComplicationDataService::class.java)
+            )
+                .requestUpdateAll()
+        }
+        return Result.success()
+    }
+
 }

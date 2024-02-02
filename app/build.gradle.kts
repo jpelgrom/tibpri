@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.compose.foundation)
     implementation(libs.activity.compose)
     implementation(libs.core.splashscreen)
+    implementation(libs.work.runtime.ktx)
     implementation(libs.apollo.runtime)
     implementation(libs.bundles.complications)
 
