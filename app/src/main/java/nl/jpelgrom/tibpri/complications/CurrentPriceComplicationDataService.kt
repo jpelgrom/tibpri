@@ -19,6 +19,7 @@ import androidx.work.WorkerParameters
 import nl.jpelgrom.tibpri.EnergyPriceInfoQuery
 import nl.jpelgrom.tibpri.R
 import nl.jpelgrom.tibpri.data.apolloClient
+import nl.jpelgrom.tibpri.data.todayAndTomorrow
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
@@ -56,9 +57,10 @@ class CurrentPriceComplicationDataService : SuspendingComplicationDataSourceServ
 
         val data = apolloClient.query(EnergyPriceInfoQuery()).execute().data
         val priceInfo = data?.viewer?.homes?.get(0)?.currentSubscription?.priceInfo
+        val allPrices = priceInfo?.todayAndTomorrow()?.filter { it.total != null }
 
-        val minToday = priceInfo?.today?.filter { it?.total != null }?.minBy { it!!.total!! }?.total
-        val maxToday = priceInfo?.today?.filter { it?.total != null }?.maxBy { it!!.total!! }?.total
+        val minPrice = allPrices?.minByOrNull { it.total!! }?.total
+        val maxPrice = allPrices?.maxByOrNull { it.total!! }?.total
         val currentPrice =
             priceInfo?.today?.get(LocalTime.now().hour)?.total // Note: assumes price changes on every hour (:00) only
 
@@ -66,11 +68,11 @@ class CurrentPriceComplicationDataService : SuspendingComplicationDataSourceServ
             MonochromaticImage.Builder(Icon.createWithResource(this, R.drawable.ic_rounded_bolt))
                 .build()
 
-        return if (minToday != null && maxToday != null && currentPrice != null) {
+        return if (minPrice != null && maxPrice != null && currentPrice != null) {
             RangedValueComplicationData.Builder(
                 value = currentPrice.toFloat(),
-                min = minToday.toFloat(),
-                max = maxToday.toFloat(),
+                min = minPrice.toFloat(),
+                max = maxPrice.toFloat(),
                 contentDescription = PlainComplicationText.Builder(getString(R.string.current_energy_price))
                     .build()
             )
