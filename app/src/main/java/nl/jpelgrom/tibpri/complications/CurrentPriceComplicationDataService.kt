@@ -21,8 +21,9 @@ import nl.jpelgrom.tibpri.R
 import nl.jpelgrom.tibpri.data.apolloClient
 import nl.jpelgrom.tibpri.data.todayAndTomorrow
 import java.time.LocalDateTime
-import java.time.LocalTime
+import java.time.OffsetDateTime
 import java.time.ZoneId
+import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
 
@@ -61,8 +62,15 @@ class CurrentPriceComplicationDataService : SuspendingComplicationDataSourceServ
 
         val minPrice = allPrices?.minByOrNull { it.total!! }?.total
         val maxPrice = allPrices?.maxByOrNull { it.total!! }?.total
-        val currentPrice =
-            priceInfo?.today?.get(LocalTime.now().hour)?.total // Note: assumes price changes on every hour (:00) only
+        val dtNow = OffsetDateTime.now()
+        val currentPrice = try {
+            priceInfo?.today?.filterNotNull()
+                ?.sortedBy { it.startsAt }
+                ?.lastOrNull { OffsetDateTime.parse(it.startsAt).isBefore(dtNow) }
+                ?.total
+        } catch (e: DateTimeParseException) {
+            null
+        }
 
         val image =
             MonochromaticImage.Builder(Icon.createWithResource(this, R.drawable.ic_rounded_bolt))
