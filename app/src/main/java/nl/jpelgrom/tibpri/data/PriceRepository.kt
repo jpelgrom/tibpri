@@ -54,13 +54,7 @@ class PriceRepository @Inject constructor(
 
         if (priceInfo != null) {
             val allPrices = priceInfo.todayAndTomorrow()
-
-            val dao = database.energyPriceDao()
-            val oldPrices = dao.getAll().filter { stored ->
-                allPrices.none { fetched -> fetched.startsAt == stored.startsAt }
-            }
-            dao.delete(oldPrices.map { it.startsAt })
-            dao.insertAll(allPrices)
+            database.energyPriceDao().replaceAll(allPrices)
             preferences.setLastFetchedData()
         } // else no data due to network error, API error, ...
     }
@@ -71,9 +65,9 @@ class PriceRepository @Inject constructor(
         val startOfDay = nowAtHome.toLocalDate().atStartOfDay(nowAtHome.zone).toOffsetDateTime()
 
         val dao = database.energyPriceDao()
-        dao.getAll().filter {
-            OffsetDateTime.parse(it.startsAt).isBefore(startOfDay)
-        }.map { it.startsAt }.ifEmpty { null }?.let { dao.delete(it) }
+        dao.getAll().sortedBy { it.startsAt }
+            .takeWhile { OffsetDateTime.parse(it.startsAt).isBefore(startOfDay) }
+            .map { it.startsAt }.ifEmpty { null }?.let { dao.delete(it) }
     }
 
     private suspend fun latestPriceIsForTomorrow(): Boolean {

@@ -105,6 +105,11 @@ class CurrentPriceComplicationDataService : SuspendingComplicationDataSourceServ
         }
     }
 
+    override fun onComplicationDeactivated(complicationInstanceId: Int) {
+        // Remove the scheduled worker, if set, to prevent unnecessary updates
+        WorkManager.getInstance(this).cancelUniqueWork(CurrentPriceComplicationWorker.TAG)
+    }
+
     private fun scheduleComplicationUpdate() {
         // Schedule a worker to push a complication update to ensure it shows the new price on time
         // Note: assumes price changes on every hour (:00) only
