@@ -11,12 +11,14 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import nl.jpelgrom.tibpri.data.database.TibpriDatabase
 import okhttp3.OkHttpClient
+import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object DataModule {
 
     @Provides
+    @Singleton
     fun provideApolloClient(): ApolloClient {
         return ApolloClient.Builder()
             .serverUrl("https://api.tibber.com/v1-beta/gql")
@@ -29,11 +31,16 @@ object DataModule {
     }
 
     @Provides
-    fun provideDatabase(@ApplicationContext context: Context): TibpriDatabase {
-        return Room.databaseBuilder(
+    @Singleton
+    fun provideDatabase(@ApplicationContext context: Context): TibpriDatabase =
+        Room.databaseBuilder(
             context,
             TibpriDatabase::class.java,
             "tibpri.room.db"
         ).build()
-    }
+
+    @Provides
+    @Singleton
+    fun providePreferences(@ApplicationContext context: Context): TibpriPreferences =
+        TibpriPreferences(context)
 }

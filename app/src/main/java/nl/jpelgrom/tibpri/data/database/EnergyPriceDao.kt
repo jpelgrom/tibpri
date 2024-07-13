@@ -16,4 +16,6 @@ interface EnergyPriceDao {
     @Query("SELECT * FROM prices")
     suspend fun getAll(): List<HourlyEnergyPrice>
 
+    @Query("SELECT * FROM prices ORDER BY startsAt DESC LIMIT 1")
+    suspend fun getLatest(): HourlyEnergyPrice?
 }

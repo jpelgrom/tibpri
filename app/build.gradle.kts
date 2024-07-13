@@ -79,6 +79,7 @@ dependencies {
     implementation(libs.bundles.complications)
     implementation(libs.bundles.room)
     ksp(libs.room.compiler)
+    implementation(libs.datastore.preferences)
 
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.ui.test.junit4)
