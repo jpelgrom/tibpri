@@ -23,6 +23,11 @@ android {
             useSupportLibrary = true
         }
         buildConfigField("String", "TIBBER_TOKEN", "\"$tibberAccessToken\"")
+        buildConfigField("String", "TIBBER_HOME_TZ", "\"Europe/Amsterdam\"")
+
+        ksp {
+            arg("room.schemaLocation", "$projectDir/schemas")
+        }
     }
 
     buildTypes {
@@ -72,6 +77,8 @@ dependencies {
     implementation(libs.work.runtime.ktx)
     implementation(libs.apollo.runtime)
     implementation(libs.bundles.complications)
+    implementation(libs.bundles.room)
+    ksp(libs.room.compiler)
 
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.ui.test.junit4)

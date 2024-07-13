@@ -19,12 +19,12 @@ import androidx.work.WorkerParameters
 import dagger.hilt.android.AndroidEntryPoint
 import nl.jpelgrom.tibpri.R
 import nl.jpelgrom.tibpri.data.PriceRepository
-import nl.jpelgrom.tibpri.data.todayAndTomorrow
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -46,7 +46,7 @@ class CurrentPriceComplicationDataService : SuspendingComplicationDataSourceServ
             contentDescription = PlainComplicationText.Builder(getString(R.string.current_energy_price))
                 .build()
         )
-            .setText(PlainComplicationText.Builder(String.format("%.1f", 0.272f * 100)).build())
+            .setText(PlainComplicationText.Builder(String.format(Locale.getDefault(), "%.1f", 0.272f * 100)).build())
             .setMonochromaticImage(
                 MonochromaticImage.Builder(
                     Icon.createWithResource(
@@ -61,16 +61,13 @@ class CurrentPriceComplicationDataService : SuspendingComplicationDataSourceServ
     override suspend fun onComplicationRequest(request: ComplicationRequest): ComplicationData {
         scheduleComplicationUpdate()
 
-        val priceInfo = priceRepository.getPriceInfo()
-        val allPrices = priceInfo?.todayAndTomorrow()?.filter { it.total != null }
-
-        val minPrice = allPrices?.minByOrNull { it.total!! }?.total
-        val maxPrice = allPrices?.maxByOrNull { it.total!! }?.total
+        val allPrices = priceRepository.getPrices()
+        val minPrice = allPrices.minByOrNull { it.total }?.total
+        val maxPrice = allPrices.maxByOrNull { it.total }?.total
         val dtNow = OffsetDateTime.now()
         val currentPrice = try {
-            priceInfo?.today?.filterNotNull()
-                ?.sortedBy { it.startsAt }
-                ?.lastOrNull { OffsetDateTime.parse(it.startsAt).isBefore(dtNow) }
+            allPrices.sortedBy { it.startsAt }
+                .lastOrNull { OffsetDateTime.parse(it.startsAt).isBefore(dtNow) }
                 ?.total
         } catch (e: DateTimeParseException) {
             null
@@ -90,7 +87,7 @@ class CurrentPriceComplicationDataService : SuspendingComplicationDataSourceServ
             )
                 // Assume EUR and show nice prices: 0.2543 should be shown as 25.4
                 .setText(
-                    PlainComplicationText.Builder(String.format("%.1f", currentPrice * 100)).build()
+                    PlainComplicationText.Builder(String.format(Locale.getDefault(), "%.1f", currentPrice * 100)).build()
                 )
                 .setMonochromaticImage(image)
                 .build()

@@ -13,6 +13,7 @@ wear-tooling-preview = "1.0.0"
 core-splashscreen = "1.0.1"
 workmanager = "2.9.0"
 wear-watchface = "1.2.1"
+room = "2.6.1"
 
 [libraries]
 apollo-runtime = { group = "com.apollographql.apollo", name = "apollo-runtime", version.ref = "apollo" }
@@ -32,9 +33,13 @@ hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.r
 work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workmanager" }
 watchface-complications = { group = "androidx.wear.watchface", name = "watchface-complications-data-source", version.ref = "wear-watchface" }
 watchface-complications-ktx = { group = "androidx.wear.watchface", name = "watchface-complications-data-source-ktx", version.ref = "wear-watchface" }
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 
 [bundles]
 complications = ["watchface-complications", "watchface-complications-ktx"]
+room = ["room-runtime", "room-ktx"]
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
