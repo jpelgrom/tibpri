@@ -1,7 +1,7 @@
 package nl.jpelgrom.tibpri.data
 
-import com.apollographql.apollo3.ApolloClient
-import com.apollographql.apollo3.network.okHttpClient
+import com.apollographql.apollo.ApolloClient
+import com.apollographql.apollo.network.okHttpClient
 import nl.jpelgrom.tibpri.BuildConfig
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
