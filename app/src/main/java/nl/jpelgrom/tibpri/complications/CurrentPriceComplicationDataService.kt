@@ -16,9 +16,9 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
-import nl.jpelgrom.tibpri.EnergyPriceInfoQuery
+import dagger.hilt.android.AndroidEntryPoint
 import nl.jpelgrom.tibpri.R
-import nl.jpelgrom.tibpri.data.apolloClient
+import nl.jpelgrom.tibpri.data.PriceRepository
 import nl.jpelgrom.tibpri.data.todayAndTomorrow
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
@@ -26,8 +26,13 @@ import java.time.ZoneId
 import java.time.format.DateTimeParseException
 import java.time.temporal.ChronoUnit
 import java.util.concurrent.TimeUnit
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class CurrentPriceComplicationDataService : SuspendingComplicationDataSourceService() {
+
+    @Inject
+    lateinit var priceRepository: PriceRepository
 
     companion object {
         private const val TAG = "CurrentPriceComplication"
@@ -56,8 +61,7 @@ class CurrentPriceComplicationDataService : SuspendingComplicationDataSourceServ
     override suspend fun onComplicationRequest(request: ComplicationRequest): ComplicationData {
         scheduleComplicationUpdate()
 
-        val data = apolloClient.query(EnergyPriceInfoQuery()).execute().data
-        val priceInfo = data?.viewer?.homes?.get(0)?.currentSubscription?.priceInfo
+        val priceInfo = priceRepository.getPriceInfo()
         val allPrices = priceInfo?.todayAndTomorrow()?.filter { it.total != null }
 
         val minPrice = allPrices?.minByOrNull { it.total!! }?.total

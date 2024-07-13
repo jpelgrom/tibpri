@@ -2,6 +2,8 @@
 agp = "8.5.1"
 apollo = "4.0.0-rc.1"
 kotlin = "2.0.0"
+ksp = "2.0.0-1.0.23"
+hilt = "2.51.1"
 play-services-wearable = "18.2.0"
 compose-bom = "2024.06.00"
 compose-material = "1.3.1"
@@ -25,6 +27,8 @@ compose-material = { group = "androidx.wear.compose", name = "compose-material",
 compose-foundation = { group = "androidx.wear.compose", name = "compose-foundation", version.ref = "compose-foundation" }
 activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activity-compose" }
 core-splashscreen = { group = "androidx.core", name = "core-splashscreen", version.ref = "core-splashscreen" }
+hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
+hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
 work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workmanager" }
 watchface-complications = { group = "androidx.wear.watchface", name = "watchface-complications-data-source", version.ref = "wear-watchface" }
 watchface-complications-ktx = { group = "androidx.wear.watchface", name = "watchface-complications-data-source-ktx", version.ref = "wear-watchface" }
@@ -37,3 +41,5 @@ androidApplication = { id = "com.android.application", version.ref = "agp" }
 kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 apolloGraphQL = { id = "com.apollographql.apollo", version.ref = "apollo" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }

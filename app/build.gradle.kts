@@ -3,6 +3,8 @@ plugins {
     alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.apolloGraphQL)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.hilt)
 }
 
 val tibberAccessToken: String by project
@@ -65,6 +67,8 @@ dependencies {
     implementation(libs.compose.foundation)
     implementation(libs.activity.compose)
     implementation(libs.core.splashscreen)
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.compiler)
     implementation(libs.work.runtime.ktx)
     implementation(libs.apollo.runtime)
     implementation(libs.bundles.complications)
