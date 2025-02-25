@@ -11,7 +11,7 @@ val tibberAccessToken: String by project
 
 android {
     namespace = "nl.jpelgrom.tibpri"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "nl.jpelgrom.tibpri"
