@@ -1,7 +1,9 @@
 package nl.jpelgrom.tibpri.complications
 
+import android.app.PendingIntent
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.graphics.drawable.Icon
 import androidx.wear.watchface.complications.data.ComplicationData
 import androidx.wear.watchface.complications.data.ComplicationType
@@ -17,6 +19,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import dagger.hilt.android.AndroidEntryPoint
+import nl.jpelgrom.tibpri.MainActivity
 import nl.jpelgrom.tibpri.R
 import nl.jpelgrom.tibpri.data.PriceRepository
 import java.time.LocalDateTime
@@ -77,6 +80,13 @@ class CurrentPriceComplicationDataService : SuspendingComplicationDataSourceServ
             MonochromaticImage.Builder(Icon.createWithResource(this, R.drawable.ic_rounded_bolt))
                 .build()
 
+        val appIntent = PendingIntent.getActivity(
+            this,
+            1,
+            Intent(this, MainActivity::class.java),
+            PendingIntent.FLAG_IMMUTABLE
+        )
+
         return if (minPrice != null && maxPrice != null && currentPrice != null) {
             RangedValueComplicationData.Builder(
                 value = currentPrice.toFloat(),
@@ -90,6 +100,7 @@ class CurrentPriceComplicationDataService : SuspendingComplicationDataSourceServ
                     PlainComplicationText.Builder(String.format(Locale.getDefault(), "%.1f", currentPrice * 100)).build()
                 )
                 .setMonochromaticImage(image)
+                .setTapAction(appIntent)
                 .build()
         } else { // Issue getting price data
             RangedValueComplicationData.Builder(
@@ -101,6 +112,7 @@ class CurrentPriceComplicationDataService : SuspendingComplicationDataSourceServ
             )
                 .setText(PlainComplicationText.Builder("?").build())
                 .setMonochromaticImage(image)
+                .setTapAction(appIntent)
                 .build()
         }
     }
